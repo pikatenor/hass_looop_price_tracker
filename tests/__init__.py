@@ -1,10 +1,10 @@
 """Tests for the Looop Denki integration."""
 
-from custom_components.looop_denki.const import CONF_AREA_CODE, DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.looop_denki.const import CONF_AREA_CODE, DOMAIN
 
 
 async def setup_integration(hass: HomeAssistant) -> ConfigEntry:

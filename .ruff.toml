@@ -13,6 +13,21 @@ ignore = [
     "D212", # multi-line-summary-first-line (incompatible with formatter)
     "COM812", # incompatible with formatter
     "ISC001", # incompatible with formatter
+    "S101", # Use of assert detected (needed for tests)
+    "PLR2004", # Magic value used in comparison (API constants are OK)
+    "TRY003", # Avoid specifying long messages outside exception class
+    "EM101", # Exception must not use string literal
+    "EM102", # Exception must not use f-string literal
+    "PLR0912", # Too many branches (complex API processing)
+    "PLR0915", # Too many statements (complex API processing)
+    "PLR0911", # Too many return statements (complex logic)
+    "TC002", # Move third-party import into type-checking block (HA pattern)
+    "TC003", # Move standard library import into type-checking block
+    "TC001", # Move application import into type-checking block
+    "ARG001", # Unused function argument (callback patterns)
+    "TRY300", # Consider moving statement to else block
+    "RUF003", # Ambiguous unicode comment (Japanese characters)
+    "ERA001", # Found commented-out code (documentation)
 ]
 
 [lint.flake8-pytest-style]

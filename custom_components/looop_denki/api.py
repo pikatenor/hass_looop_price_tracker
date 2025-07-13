@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import aiohttp
@@ -24,7 +24,8 @@ class LooopDenkiApiClient:
     """Client for Looop Denki API."""
 
     def __init__(self, area_code: str, session: ClientSession | None = None) -> None:
-        """Initialize the API client.
+        """
+        Initialize the API client.
 
         Args:
             area_code: The electricity area code (01-10)
@@ -48,7 +49,8 @@ class LooopDenkiApiClient:
             await self._session.close()
 
     async def async_get_prices(self) -> dict[str, Any]:
-        """Get electricity prices for the configured area.
+        """
+        Get electricity prices for the configured area.
 
         Returns:
             Dict containing price data with current, historical pricing info
@@ -76,7 +78,8 @@ class LooopDenkiApiClient:
             return data
 
     def get_current_price_info(self, price_data: dict[str, Any]) -> dict[str, Any]:
-        """Extract current price information from API response.
+        """
+        Extract current price information from API response.
 
         Args:
             price_data: Raw API response data containing keys:
@@ -98,13 +101,15 @@ class LooopDenkiApiClient:
         _LOGGER.debug("Current time: %s:%02d", current_hour, current_minute)
         _LOGGER.debug("Calculated time slot: %s (should be 0-47)", current_30min_slot)
         _LOGGER.debug("Price data keys: %s", list(price_data.keys()))
-        
+
         # Debug: Show timelist if available
         if "timelist" in price_data:
             timelist = price_data["timelist"]
             if current_30min_slot < len(timelist):
                 expected_time = timelist[current_30min_slot]
-                _LOGGER.debug("Expected time for slot %s: %s", current_30min_slot, expected_time)
+                _LOGGER.debug(
+                    "Expected time for slot %s: %s", current_30min_slot, expected_time
+                )
 
         # Get today's data (key "1" is today, "0" is yesterday, "2" is tomorrow)
         today_data = price_data.get("1", {})
@@ -117,24 +122,39 @@ class LooopDenkiApiClient:
         level_list = today_data.get("level", [])
         text_dict = today_data.get("text", {})
 
-        _LOGGER.debug("Data lengths - price: %s, level: %s, text: %s",
-                     len(price_list) if isinstance(price_list, list) else "N/A",
-                     len(level_list) if isinstance(level_list, list) else "N/A",
-                     len(text_dict) if isinstance(text_dict, dict) else "N/A")
-        _LOGGER.debug("Text data type: %s, available keys: %s", type(text_dict).__name__, list(text_dict.keys()) if isinstance(text_dict, dict) else "N/A")
-        
+        _LOGGER.debug(
+            "Data lengths - price: %s, level: %s, text: %s",
+            len(price_list) if isinstance(price_list, list) else "N/A",
+            len(level_list) if isinstance(level_list, list) else "N/A",
+            len(text_dict) if isinstance(text_dict, dict) else "N/A",
+        )
+        _LOGGER.debug(
+            "Text data type: %s, available keys: %s",
+            type(text_dict).__name__,
+            list(text_dict.keys()) if isinstance(text_dict, dict) else "N/A",
+        )
+
         # Debug: Show some price data around current slot
         if isinstance(price_list, list) and len(price_list) > current_30min_slot:
             start_idx = max(0, current_30min_slot - 2)
             end_idx = min(len(price_list), current_30min_slot + 3)
             price_sample = price_list[start_idx:end_idx]
-            _LOGGER.debug("Price data around slot %s (indices %s-%s): %s", 
-                         current_30min_slot, start_idx, end_idx-1, price_sample)
-            
+            _LOGGER.debug(
+                "Price data around slot %s (indices %s-%s): %s",
+                current_30min_slot,
+                start_idx,
+                end_idx - 1,
+                price_sample,
+            )
+
             # Look for 14.05 in the data
             if 14.05 in price_list:
                 found_index = price_list.index(14.05)
-                _LOGGER.debug("Found 14.05 at index %s (expected around %s)", found_index, current_30min_slot)
+                _LOGGER.debug(
+                    "Found 14.05 at index %s (expected around %s)",
+                    found_index,
+                    current_30min_slot,
+                )
 
         # Ensure we have valid data structures
         if not isinstance(price_list, list):
@@ -153,7 +173,8 @@ class LooopDenkiApiClient:
                 current_level = level_list[current_30min_slot]
 
             # Handle text_dict safely (it's a dictionary)
-            # NOTE: text dict uses 1-based indexing (1-48) while price_data uses 0-based (0-47)
+            # NOTE: text dict uses 1-based indexing (1-48)
+            # while price_data uses 0-based (0-47)
             current_text = ""
             current_text_price = None
             text_slot_key = str(current_30min_slot + 1)  # Convert to 1-based indexing
@@ -161,17 +182,25 @@ class LooopDenkiApiClient:
                 text_data = text_dict[text_slot_key]
                 if isinstance(text_data, dict):
                     current_text_price = text_data.get("price")
-                    current_text = f"Price: {current_text_price}, Level: {text_data.get('level', 'N/A')}"
+                    level = text_data.get("level", "N/A")
+                    current_text = f"Price: {current_text_price}, Level: {level}"
                 else:
                     current_text = str(text_data)
 
             # Debug: Compare price_data vs text price
-            _LOGGER.debug("Slot %s: price_data[%s]=%s, text['%s'].price=%s", 
-                         current_30min_slot, current_30min_slot, current_price, 
-                         text_slot_key, current_text_price)
+            _LOGGER.debug(
+                "Slot %s: price_data[%s]=%s, text['%s'].price=%s",
+                current_30min_slot,
+                current_30min_slot,
+                current_price,
+                text_slot_key,
+                current_text_price,
+            )
 
             # Map level to meaningful status
-            status = self._get_price_status(current_level, current_text_price or current_price)
+            status = self._get_price_status(
+                current_level, current_text_price or current_price
+            )
 
             return {
                 "current_price": current_text_price or current_price,
@@ -186,7 +215,8 @@ class LooopDenkiApiClient:
         return {}
 
     def get_next_price_info(self, price_data: dict[str, Any]) -> dict[str, Any]:
-        """Get next hour's price information for seamless transitions.
+        """
+        Get next hour's price information for seamless transitions.
 
         Returns:
             Dict with next price info or empty dict if not available
@@ -213,18 +243,26 @@ class LooopDenkiApiClient:
 
             if next_30min_slot < len(price_list):
                 next_price = price_list[next_30min_slot]
-                next_level = level_list[next_30min_slot] if next_30min_slot < len(level_list) else None
+                next_level = (
+                    level_list[next_30min_slot]
+                    if next_30min_slot < len(level_list)
+                    else None
+                )
 
                 # Get text data (1-based indexing)
                 text_slot_key = str(next_30min_slot + 1)
                 next_text_price = None
-                if text_slot_key in text_dict and isinstance(text_dict[text_slot_key], dict):
+                if text_slot_key in text_dict and isinstance(
+                    text_dict[text_slot_key], dict
+                ):
                     next_text_price = text_dict[text_slot_key].get("price")
 
                 return {
                     "next_price": next_text_price or next_price,
                     "next_level": next_level,
-                    "next_status": self._get_price_status(next_level, next_text_price or next_price),
+                    "next_status": self._get_price_status(
+                        next_level, next_text_price or next_price
+                    ),
                     "next_time_slot": next_30min_slot,
                 }
         else:
@@ -249,7 +287,9 @@ class LooopDenkiApiClient:
                 return {
                     "next_price": next_text_price or next_price,
                     "next_level": next_level,
-                    "next_status": self._get_price_status(next_level, next_text_price or next_price),
+                    "next_status": self._get_price_status(
+                        next_level, next_text_price or next_price
+                    ),
                     "next_time_slot": 0,
                     "is_tomorrow": True,
                 }
@@ -257,7 +297,8 @@ class LooopDenkiApiClient:
         return {}
 
     def get_tomorrow_forecast_info(self, price_data: dict[str, Any]) -> dict[str, Any]:
-        """Extract tomorrow's forecast information from API response.
+        """
+        Extract tomorrow's forecast information from API response.
 
         Returns:
             Dict with tomorrow's average, min, max prices and time ranges
@@ -268,7 +309,7 @@ class LooopDenkiApiClient:
             return {}
 
         price_list = tomorrow_data.get("price_data", [])
-        level_list = tomorrow_data.get("level", [])
+        # level_list = tomorrow_data.get("level", [])  # Not used
         text_dict = tomorrow_data.get("text", {})
 
         if not price_list:
@@ -278,7 +319,9 @@ class LooopDenkiApiClient:
         effective_prices = []
         for i in range(len(price_list)):
             text_slot_key = str(i + 1)  # 1-based indexing for text
-            if text_slot_key in text_dict and isinstance(text_dict[text_slot_key], dict):
+            if text_slot_key in text_dict and isinstance(
+                text_dict[text_slot_key], dict
+            ):
                 text_price = text_dict[text_slot_key].get("price")
                 if text_price is not None:
                     effective_prices.append(text_price)
@@ -304,7 +347,7 @@ class LooopDenkiApiClient:
             minute_end = 29 if slot % 2 == 0 else 59
             return {
                 "start": f"{hour:02d}:{minute_start:02d}",
-                "end": f"{hour:02d}:{minute_end:02d}"
+                "end": f"{hour:02d}:{minute_end:02d}",
             }
 
         return {
@@ -316,8 +359,11 @@ class LooopDenkiApiClient:
             "data_available": True,
         }
 
-    def get_historical_data(self, price_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
-        """Get historical and forecast pricing data.
+    def get_historical_data(
+        self, price_data: dict[str, Any]
+    ) -> dict[str, dict[str, Any]]:
+        """
+        Get historical and forecast pricing data.
 
         Args:
             price_data: Raw API response data
@@ -333,7 +379,8 @@ class LooopDenkiApiClient:
         }
 
     def _get_price_status(self, level: float | None, price: float | None) -> str:
-        """Determine price status based on level and price.
+        """
+        Determine price status based on level and price.
 
         Args:
             level: Price level from API (-0.5, 0, etc.)
@@ -366,7 +413,8 @@ class LooopDenkiApiClient:
 
     @staticmethod
     def get_area_codes() -> dict[str, str]:
-        """Get available electricity area codes.
+        """
+        Get available electricity area codes.
 
         Returns:
             Dict mapping area codes to area names
@@ -386,7 +434,8 @@ class LooopDenkiApiClient:
         }
 
     async def test_connection(self) -> bool:
-        """Test if we can connect to the API.
+        """
+        Test if we can connect to the API.
 
         Returns:
             True if connection successful, False otherwise

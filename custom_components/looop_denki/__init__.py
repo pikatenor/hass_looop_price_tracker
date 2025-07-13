@@ -20,12 +20,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: LooopDenkiConfigEntry) -
     """Set up Looop Denki from a config entry."""
     area_code = entry.data[CONF_AREA_CODE]
     session = async_get_clientsession(hass)
-    
+
     client = LooopDenkiApiClient(area_code, session)
     coordinator = LooopDenkiCoordinator(hass, client)
-    
+
     await coordinator.async_config_entry_first_refresh()
-    
+
     entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, _PLATFORMS)
@@ -36,8 +36,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: LooopDenkiConfigEntry) -
 async def async_unload_entry(hass: HomeAssistant, entry: LooopDenkiConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, _PLATFORMS)
-    
+
     if unload_ok:
         await entry.runtime_data.client.close()
-    
+
     return unload_ok

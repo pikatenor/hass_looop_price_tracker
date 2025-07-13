@@ -21,7 +21,7 @@ class LooopDenkiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(self, hass: HomeAssistant, client: LooopDenkiApiClient) -> None:
         """Initialize the coordinator."""
         self.client = client
-        
+
         super().__init__(
             hass,
             _LOGGER,
@@ -46,4 +46,6 @@ class LooopDenkiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "historical_data": historical_data,
             }
         except LooopDenkiApiError as err:
-            raise UpdateFailed(f"Error communicating with Looop Denki API: {err}") from err
+            raise UpdateFailed(
+                f"Error communicating with Looop Denki API: {err}"
+            ) from err

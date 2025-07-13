@@ -3,10 +3,11 @@
 from unittest.mock import AsyncMock, patch
 
 from homeassistant import config_entries
-from custom_components.looop_denki.config_flow import CannotConnect
-from custom_components.looop_denki.const import CONF_AREA_CODE, DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+
+from custom_components.looop_denki.config_flow import CannotConnectError
+from custom_components.looop_denki.const import CONF_AREA_CODE, DOMAIN
 
 
 async def test_form(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> None:
@@ -14,8 +15,8 @@ async def test_form(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> None:
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {}
+    assert result.get("type") is FlowResultType.FORM
+    assert result.get("errors", {}) == {}
 
     with patch(
         "custom_components.looop_denki.config_flow.LooopDenkiApiClient.test_connection",
@@ -29,9 +30,9 @@ async def test_form(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> None:
         )
         await hass.async_block_till_done()
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Looop でんき - 東京電力"
-    assert result["data"] == {
+    assert result.get("type") is FlowResultType.CREATE_ENTRY
+    assert result.get("title") == "Looop でんき - 東京電力"
+    assert result.get("data") == {
         CONF_AREA_CODE: "03",
     }
     assert len(mock_setup_entry.mock_calls) == 1
@@ -47,7 +48,7 @@ async def test_form_cannot_connect(
 
     with patch(
         "custom_components.looop_denki.config_flow.LooopDenkiApiClient.test_connection",
-        side_effect=CannotConnect,
+        side_effect=CannotConnectError,
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -56,8 +57,8 @@ async def test_form_cannot_connect(
             },
         )
 
-    assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {"base": "cannot_connect"}
+    assert result.get("type") is FlowResultType.FORM
+    assert result.get("errors") == {"base": "cannot_connect"}
 
     # Make sure the config flow tests finish with either an
     # FlowResultType.CREATE_ENTRY or FlowResultType.ABORT so
@@ -75,9 +76,9 @@ async def test_form_cannot_connect(
         )
         await hass.async_block_till_done()
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Looop でんき - 東京電力"
-    assert result["data"] == {
+    assert result.get("type") is FlowResultType.CREATE_ENTRY
+    assert result.get("title") == "Looop でんき - 東京電力"
+    assert result.get("data") == {
         CONF_AREA_CODE: "03",
     }
     assert len(mock_setup_entry.mock_calls) == 1

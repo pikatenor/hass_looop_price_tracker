@@ -1,10 +1,9 @@
 """Test the Looop Denki sensor platform."""
 
-from unittest.mock import AsyncMock, patch
+from typing import Any
+from unittest.mock import patch
 
 import pytest
-
-from custom_components.looop_denki.const import DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
@@ -14,7 +13,7 @@ from . import setup_integration
 
 
 @pytest.fixture
-def mock_api_data():
+def mock_api_data() -> dict[str, Any]:
     """Mock API data for testing."""
     return {
         "0": {  # Yesterday's data
@@ -53,7 +52,7 @@ def mock_api_data():
     }
 
 
-async def test_sensor_setup(hass: HomeAssistant, mock_api_data) -> None:
+async def test_sensor_setup(hass: HomeAssistant, mock_api_data: dict[str, Any]) -> None:
     """Test sensor setup."""
     with (
         patch(
@@ -92,7 +91,7 @@ async def test_sensor_setup(hass: HomeAssistant, mock_api_data) -> None:
     assert tomorrow_avg_entity.unique_id == "looop_denki_03_tomorrow_average"
 
 
-async def test_sensor_state(hass: HomeAssistant, mock_api_data) -> None:
+async def test_sensor_state(hass: HomeAssistant, mock_api_data: dict[str, Any]) -> None:
     """Test sensor state."""
     with (
         patch(
@@ -218,5 +217,6 @@ async def test_sensor_update_failure(hass: HomeAssistant) -> None:
     ):
         config_entry = await setup_integration(hass)
 
-    # When API fails during initial setup, the integration should be in setup retry state
+    # When API fails during initial setup, the integration should be in
+    # setup retry state
     assert config_entry.state == ConfigEntryState.SETUP_RETRY

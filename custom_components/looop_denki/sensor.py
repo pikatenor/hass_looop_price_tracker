@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -44,7 +45,11 @@ SENSOR_TYPES: tuple[LooopDenkiSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="円/kWh",
-        value_fn=lambda sensor: sensor.coordinator.data.get("current_info", {}).get("current_price") if sensor.coordinator.data else None,
+        value_fn=lambda sensor: sensor.coordinator.data.get("current_info", {}).get(
+            "current_price"
+        )
+        if sensor.coordinator.data
+        else None,
     ),
     LooopDenkiSensorEntityDescription(
         key="next_price",
@@ -53,12 +58,24 @@ SENSOR_TYPES: tuple[LooopDenkiSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="円/kWh",
-        value_fn=lambda sensor: sensor.coordinator.data.get("next_info", {}).get("next_price") if sensor.coordinator.data else None,
+        value_fn=lambda sensor: sensor.coordinator.data.get("next_info", {}).get(
+            "next_price"
+        )
+        if sensor.coordinator.data
+        else None,
         extra_fn=lambda sensor: {
-            "next_status": sensor.coordinator.data.get("next_info", {}).get("next_status"),
-            "next_time_slot": sensor.coordinator.data.get("next_info", {}).get("next_time_slot"),
-            "is_tomorrow": sensor.coordinator.data.get("next_info", {}).get("is_tomorrow", False),
-        } if sensor.coordinator.data and sensor.coordinator.data.get("next_info") else None,
+            "next_status": sensor.coordinator.data.get("next_info", {}).get(
+                "next_status"
+            ),
+            "next_time_slot": sensor.coordinator.data.get("next_info", {}).get(
+                "next_time_slot"
+            ),
+            "is_tomorrow": sensor.coordinator.data.get("next_info", {}).get(
+                "is_tomorrow", False
+            ),
+        }
+        if sensor.coordinator.data and sensor.coordinator.data.get("next_info")
+        else None,
     ),
     LooopDenkiSensorEntityDescription(
         key="tomorrow_average",
@@ -67,10 +84,18 @@ SENSOR_TYPES: tuple[LooopDenkiSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="円/kWh",
-        value_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get("tomorrow_average") if sensor.coordinator.data else None,
+        value_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get(
+            "tomorrow_average"
+        )
+        if sensor.coordinator.data
+        else None,
         extra_fn=lambda sensor: {
-            "data_available": sensor.coordinator.data.get("tomorrow_info", {}).get("data_available", False),
-        } if sensor.coordinator.data and sensor.coordinator.data.get("tomorrow_info") else None,
+            "data_available": sensor.coordinator.data.get("tomorrow_info", {}).get(
+                "data_available", False
+            ),
+        }
+        if sensor.coordinator.data and sensor.coordinator.data.get("tomorrow_info")
+        else None,
     ),
     LooopDenkiSensorEntityDescription(
         key="tomorrow_min",
@@ -79,8 +104,16 @@ SENSOR_TYPES: tuple[LooopDenkiSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="円/kWh",
-        value_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get("tomorrow_min") if sensor.coordinator.data else None,
-        extra_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get("tomorrow_min_time") if sensor.coordinator.data and sensor.coordinator.data.get("tomorrow_info") else None,
+        value_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get(
+            "tomorrow_min"
+        )
+        if sensor.coordinator.data
+        else None,
+        extra_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get(
+            "tomorrow_min_time"
+        )
+        if sensor.coordinator.data and sensor.coordinator.data.get("tomorrow_info")
+        else None,
     ),
     LooopDenkiSensorEntityDescription(
         key="tomorrow_max",
@@ -89,8 +122,16 @@ SENSOR_TYPES: tuple[LooopDenkiSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="円/kWh",
-        value_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get("tomorrow_max") if sensor.coordinator.data else None,
-        extra_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get("tomorrow_max_time") if sensor.coordinator.data and sensor.coordinator.data.get("tomorrow_info") else None,
+        value_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get(
+            "tomorrow_max"
+        )
+        if sensor.coordinator.data
+        else None,
+        extra_fn=lambda sensor: sensor.coordinator.data.get("tomorrow_info", {}).get(
+            "tomorrow_max_time"
+        )
+        if sensor.coordinator.data and sensor.coordinator.data.get("tomorrow_info")
+        else None,
     ),
 )
 
@@ -103,9 +144,10 @@ async def async_setup_entry(
     """Set up Looop Denki sensor entities."""
     coordinator = entry.runtime_data
 
-    entities = []
-    for description in SENSOR_TYPES:
-        entities.append(LooopDenkiSensor(coordinator, entry, description))
+    entities = [
+        LooopDenkiSensor(coordinator, entry, description)
+        for description in SENSOR_TYPES
+    ]
 
     async_add_entities(entities)
 
@@ -156,14 +198,16 @@ class LooopDenkiSensor(CoordinatorEntity[LooopDenkiCoordinator], SensorEntity):
         if self.entity_description.key == "current_price":
             current_info = self.coordinator.data.get("current_info", {})
             if current_info:
-                attrs.update({
-                    ATTR_CURRENT_LEVEL: current_info.get("current_level"),
-                    ATTR_CURRENT_TEXT: current_info.get("current_text"),
-                    ATTR_STATUS: current_info.get("status"),
-                    ATTR_TIME_SLOT: current_info.get("time_slot"),
-                    ATTR_HOUR: current_info.get("hour"),
-                    ATTR_MINUTE_RANGE: current_info.get("minute_range"),
-                })
+                attrs.update(
+                    {
+                        ATTR_CURRENT_LEVEL: current_info.get("current_level"),
+                        ATTR_CURRENT_TEXT: current_info.get("current_text"),
+                        ATTR_STATUS: current_info.get("status"),
+                        ATTR_TIME_SLOT: current_info.get("time_slot"),
+                        ATTR_HOUR: current_info.get("hour"),
+                        ATTR_MINUTE_RANGE: current_info.get("minute_range"),
+                    }
+                )
 
         # Add sensor-specific attributes
         if self.entity_description.extra_fn:

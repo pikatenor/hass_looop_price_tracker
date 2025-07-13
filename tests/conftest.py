@@ -21,4 +21,4 @@ def auto_enable_custom_integrations(
 ) -> Generator[None]:
     """Enable custom integrations for all tests."""
     _ = enable_custom_integrations
-    yield
+    yield  # noqa: PT022
