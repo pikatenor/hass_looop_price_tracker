@@ -13,3 +13,12 @@ def mock_setup_entry() -> Generator[AsyncMock]:
         "custom_components.looop_denki.async_setup_entry", return_value=True
     ) as mock_setup_entry:
         yield mock_setup_entry
+
+
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(
+    enable_custom_integrations: None,
+) -> Generator[None]:
+    """Enable custom integrations for all tests."""
+    _ = enable_custom_integrations
+    yield
