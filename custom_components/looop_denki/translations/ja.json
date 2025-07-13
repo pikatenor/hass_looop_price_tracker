@@ -2,10 +2,10 @@
   "config": {
     "step": {
       "user": {
-        "title": "Looop Denki",
-        "description": "Please select your regional power company",
+        "title": "Looop でんき",
+        "description": "電力エリアを選択してください",
         "data": {
-          "area_code": "Power Area"
+          "area_code": "電力エリア"
         }
       }
     },
@@ -20,19 +20,19 @@
   "entity": {
     "sensor": {
       "current_price": {
-        "name": "Current Power Price"
+        "name": "現在の電力料金"
       },
       "next_price": {
-        "name": "Next Power Price"
+        "name": "次の電力料金"
       },
       "tomorrow_average_price": {
-        "name": "Tomorrow Average Power Price"
+        "name": "明日の平均電力料金"
       },
       "tomorrow_min_price": {
-        "name": "Tomorrow Minimum Power Price"
+        "name": "明日の最安電力料金"
       },
       "tomorrow_max_price": {
-        "name": "Tomorrow Maximum Power Price"
+        "name": "明日の最高電力料金"
       }
     }
   }
