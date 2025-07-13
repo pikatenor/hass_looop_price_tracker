@@ -1,0 +1,17 @@
+{
+  "domain": "looop_denki",
+  "name": "Looop Denki",
+  "codeowners": [
+    "@pikatenor"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/looop_denki",
+  "homekit": {},
+  "iot_class": "cloud_polling",
+  "quality_scale": "bronze",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "version": "0.0.1"
+}
